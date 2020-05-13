@@ -3,7 +3,8 @@ import re
 import tweepy
 from tweepy import OAuthHandler
 from textblob import TextBlob
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+#from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from langdetect import detect
 
 class TwitterClient(object):
