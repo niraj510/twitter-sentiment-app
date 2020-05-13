@@ -32,5 +32,5 @@ def tweets():
     return jsonify({'data': tweets, 'count': len(tweets)})
 
 
-port = int(os.environ.get('PORT', 5000))
-app.run(host="127.0.0.1", port=port, debug=True)
+#port = int(os.environ.get('PORT', 5000))
+#app.run(host="127.0.0.1", port=port, debug=True)
