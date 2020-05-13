@@ -95,7 +95,7 @@
 					var container = $('#tweets');
 					var contents = '';
 					buildChart(data, data['count']);
-					//wordCloud(tweets);
+					wordCloud(tweets);
 					
 
 					for (i = 0; i < tweets.length; i++) {
@@ -173,7 +173,51 @@
 		};
 		
 		
+		function wordCloud(tweets){
 		
+		
+			var wordcloud= '';
+				for (i = 0; i < tweets.length; i++) {
+							wordcloud += tweets[i].text;
+						}
+						
+					var lines = wordcloud.split(/[,\. ]+/g),
+					data1 = Highcharts.reduce(lines, function (arr, word) {
+						var obj = Highcharts.find(arr, function (obj) {
+							return obj.name === word;
+						});
+						if (obj) {
+							obj.weight += 1;
+						} else {
+							obj = {
+								name: word,
+								weight: 1
+							};
+							arr.push(obj);
+						}
+						return arr;
+					}, []);
+
+				Highcharts.chart('container', {
+							accessibility: {
+								screenReaderSection: {
+									beforeChartFormat: '<h5>{chartTitle}</h5>' +
+										'<div>{chartSubtitle}</div>' +
+										'<div>{chartLongdesc}</div>' +
+										'<div>{viewTableButton}</div>'
+								}
+							},
+							series: [{
+								type: 'wordcloud',
+								data: data1,
+								name: 'Occurrences'
+							}],
+							title: {
+								text: 'Wordcloud of Tweets'
+							}
+						});
+						
+		}
 		
 	
 		function getNegativePercentage(data, key) {
