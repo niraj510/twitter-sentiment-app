@@ -12,6 +12,15 @@
 	<script src="https://code.highcharts.com/modules/exporting.js"></script>
 	<script src="https://code.highcharts.com/modules/wordcloud.js"></script>
 	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<!-- 	
+	<script src="https://code.highcharts.com/maps/highmaps.js"></script>
+<script src="https://code.highcharts.com/maps/modules/data.js"></script>
+<script src="https://code.highcharts.com/maps/modules/data.js"></script>
+<script src="https://code.highcharts.com/maps/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/maps/modules/offline-exporting.js"></script> -->
+
+	
+	
 	<meta http-equiv="refresh" content="180">
 
 	<style>
@@ -24,13 +33,16 @@
 			margin: 20px auto !important;
 		}
 	</style>
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   
 </head>
 
 <body>
 	<div class='container-fluid'>
 		<div class="row">
 			<div class='text-center col-xs-12'>
-				<h1>Tweet Sentiment Analysis</h1>
+				<h1>Tweet Sentiment Analysis- Niraj Kumari</h1>
 				<!--h5>Search for Tweets and download the data labeled with it's Polarity in CSV format</h5-->
 				<div id="search_box">
 					<input type="text" id="query">
@@ -41,13 +53,25 @@
 			</div>
 		</div>
 		<div class="row">
-			<div id="loading" class="text-center">Loading...</div>			
+			<div id="loading" class="text-center">Loading...</div>	
+		
 			<div class="col-sm-6">
-				<div id="container" style="height: 400px; max-width: 600px; margin: 0 auto"></div>				
+				<div id="container-textblob" style="height: 450px; max-width: 450px; margin: 0 auto"></div>
+
+			</div>	
+			<div class="col-sm-6">
+                       <div id="container-scatter" style="height: 450px; max-width: 450px; margin: 0 auto" ></div>
+             </div> 		
+			<div class="col-sm-6">
+				<div id="container" style="height: 450px; max-width: 450px; margin: 0 auto"></div>				
+							
 			</div>
 			<div class="col-sm-6">
-				<div id="container-vader" style="height: 400px; max-width: 600px; margin: 0 auto"></div>
+				<div id="container-vader" style="height: 450px; max-width: 450px; margin: 0 auto"></div>
 			</div>
+			
+			
+			
 			<div class="col-sm-12" id="tweets-container">
 				<div class="row text-center">
 					<div class="col-sm-6">
@@ -62,19 +86,26 @@
 			</div>			
 		</div>
 		<footer class="row text-center">
-			Made By NIRAJ KUMARI
+			© NIRAJ KUMARI
 		</footer>
 	</div>
 	<script type="text/javascript">
 		var current_data;
 		var chart = {};
+		
 
 		function sentiment_to_color(sentiment) {
 			if (sentiment == 'positive') return 'panel-success';
 			else if (sentiment == 'negative') return 'panel-danger';
+			//else if (sentiment == 'wpositive') return 'panel-danger';
+			//else if (sentiment == 'spositive') return 'panel-danger';
+			//else if (sentiment == 'wnegative') return 'panel-danger';
+			//else if (sentiment == 'snegative') return 'panel-danger';
 			else return 'panel-primary';
 		}
-
+	
+		
+	
 		function load_tweets(querystring, tweetcount) {
 			$("#container, #container-vader").hide();
 			$.ajax({
@@ -84,7 +115,9 @@
 					'retweets_only': 'false',
 					'with_sentiment': 'true',
 					'tweetcount': tweetcount
+					
 				},
+				
 				dataType: 'json',
 				type: 'GET',
 				success: function (data) {
@@ -94,10 +127,31 @@
 					var tweets = data['data'];
 					var container = $('#tweets');
 					var contents = '';
+					//createMap(data);
 					buildChart(data, data['count']);
-					//wordCloud(tweets);
+					wordCloud(tweets);
+					//console.log(data['scatterdata']);
+					var subject = data['subject'];
+					console.log("subject" +subject);
 					
-
+					var polar = data['polar'];
+					console.log("polar" +polar);
+				
+					//console.log("PolarityFromJson" +sctr.Polarity);
+					var subject1 = [];
+					var polar1 = [];
+					
+					for(var i in subject){
+						subject1.push([i,subject[i]]);
+						}
+					for(var i in polar){
+						polar1.push([i,polar[i]]);
+						}	
+					//subject1 = JSON.parse(subject);
+					//polar1 = JSON.parse(polar);
+				
+					drawScatterChart(subject1,polar1);
+					
 					for (i = 0; i < tweets.length; i++) {
 						contents += '<div class="col-sm-6">';
 						contents += '<div class="panel ' + sentiment_to_color(tweets[i].sentiment) +
@@ -110,8 +164,6 @@
 						'"> <div class="panel-heading"> <h3 class="panel-title">' + tweets[i].user +
 						'</h3> </div> <div class="panel-body"><blockquote>' + tweets[i].text + '</blockquote> </div> </div>'
 						contents += '</div>';
-						
-						// contents += '<li class="list-group-item '+ sentiment_to_color(tweets[i].sentiment) +'">'+ tweets[i].user + ": " + tweets[i].text + '</li>';
 					}
 
 					container.html(contents);
@@ -121,25 +173,37 @@
 				}
 			});
 		}
+	
+
 
 	
-		
-		$(document).ready(function () {
-			load_tweets('Donald Trump', 100);
-		});
-
-		$('#search').click(function () {
-			$('#loading').html('Loading...');
-			$('#tweets').html('');
-			load_tweets($('#query').val(), $('#tweetcount').val());
-		});
-
-		$('#getcsv').click(function () {
-			download('data.csv', get_csv(current_data));
-		});
-
 		function buildChart(data, tweetcount) {
-		
+			var options1 = {
+				chart: {
+					backgroundColor: "#272b30",
+					plotBackgroundColor: "#272b30",
+					plotBorderWidth: null,
+					plotShadow: false,
+					type: 'pie'
+				},
+				title: {
+					text: 'NLTK'
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+							enabled: true,
+							format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+						}
+					}
+				},
+				series: getPercentage(data)
+			};
 			var options = {
 				chart: {
 					backgroundColor: "#272b30",
@@ -149,7 +213,7 @@
 					type: 'pie'
 				},
 				title: {
-					text: `last ${tweetcount} tweets on ` + $('#query').val()
+					text: 'TextBlob'
 				},
 				tooltip: {
 					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -168,16 +232,136 @@
 			};
 			console.log(data);					
 			chart.a = Highcharts.chart('container', options);
-			options.series = getPercentage(data, 'sentiment_vader');
-			chart.b = Highcharts.chart('container-vader', options);
+			options1.series = getPercentage(data, 'sentiment_vader');
+			chart.b = Highcharts.chart('container-vader', options1);
+			
 		};
 		
+		function getPercentage(data, key) {
+			key = key || 'sentiment';						
+			var neutral = getNeutralPercentage(data, key);
+			var positive = getPositivePercentage(data, key);
+			var negative = getNegativePercentage(data, key);
+			
+			//var wpositive = getWpositivePercentage(data, key);
+			//var spositive = getSpositivePercentage(data, key);
+			//var wnegative = getWnegativePercentage(data, key);
+			//var snegative = getSnegativePercentage(data, key);
+
+			return [{
+				name: 'Tweets',
+				//colorByPoint: true,
+				data: [{
+					name: 'Positive',
+					y: positive,
+					color: "#2E7D32"					
+				}, {
+					name: 'Negative',
+					y: negative,
+					sliced: true,
+					selected: true,
+					color: "#B71C1C"					
+				}, {
+					name: 'Neutral',
+					y: neutral,
+					color: "#7a8288"
+				}
+				]
+			}]
+			// body...
+		}
+	
+	
 		
+
+	
+	function drawScatterChart(subject1,polar1)
+	{
+	// Apply the theme
+	//var obj = JSON.parse(subject1);
+	console.log("subject1:", subject1);
+	console.log("polar1:", polar1);
+	
+	Highcharts.setOptions(Highcharts.theme);
+	Highcharts.chart('container-scatter', {
+    chart: {
+        type: 'scatter',
+        zoomType: 'xy'
+    },
+    title: {
+        text: 'Subjectivity vs Polarity'
+    },
+   
+    xAxis: {
+        title: {
+            enabled: true,
+            text: 'Number of Tweets'
+        },
+        startOnTick: true,
+        endOnTick: true,
+        showLastLabel: true
+		
+		
+    },
+    yAxis: {
+        title: {
+            text: 'Number of User'
+        }
+    },
+    legend: {
+        layout: 'vertical',
+        align: 'left',
+        verticalAlign: 'top',
+        x: 100,
+        y: 70,
+        floating: true,
+        backgroundColor: Highcharts.defaultOptions.chart.backgroundColor,
+        borderWidth: 1
+    },
+    plotOptions: {
+        scatter: {
+            marker: {
+                radius: 5,
+                states: {
+                    hover: {
+                        enabled: true,
+                        lineColor: 'rgb(100,100,100)'
+                    }
+                }
+            },
+            states: {
+                hover: {
+                    marker: {
+                        enabled: false
+                    }
+                }
+            }
+			
+           
+        }
+    },
+    series: [{
+        name: 'Subjectivity',
+        //color: 'rgba(223, 83, 83, .5)',
+        data: subject1
+            
+
+    }, {
+        name: 'Polarity',
+        //color: 'rgba(119, 152, 191, .5)',
+        data: polar1
+    
+    }]
+
+});
+}
+
+	  
 		function wordCloud(tweets){
-		
+			Highcharts.setOptions(Highcharts.theme);
 		
 			var wordcloud= '';
-				for (i = 0; i < tweets.length; i++) {
+				for (i = 0; i < 5; i++) {
 							wordcloud += tweets[i].text;
 						}
 						
@@ -198,7 +382,7 @@
 						return arr;
 					}, []);
 
-				Highcharts.chart('container', {
+				Highcharts.chart('container-textblob', {
 							accessibility: {
 								screenReaderSection: {
 									beforeChartFormat: '<h5>{chartTitle}</h5>' +
@@ -214,10 +398,34 @@
 							}],
 							title: {
 								text: 'Wordcloud of Tweets'
+							},
+							 dataLabels: {
+								enabled: true,
+								style: {
+									fontWeight: 'bold'
+								}
 							}
 						});
 						
 		}
+		
+		$(document).ready(function () {
+			load_tweets('Corona', 50);
+		});
+
+		$('#search').click(function () {
+			$('#loading').html('Loading...');
+			$('#tweets').html('');
+			load_tweets($('#query').val(), $('#tweetcount').val());
+		});
+
+		$('#getcsv').click(function () {
+			download('data.csv', get_csv(current_data));
+		});
+
+		
+		
+		
 		
 	
 		function getNegativePercentage(data, key) {
@@ -245,6 +453,7 @@
 
 			return counter / data.count;
 		}
+		
 
 		function getNeutralPercentage(data, key) {
 			key = key || 'sentiment';						
@@ -257,35 +466,260 @@
 			console.log('neutral', counter)
 			return counter / data.count;
 		}
+		
+		function getWpositivePercentage(data, key) {
+			key = key || 'sentiment';			
+			var current_data = data['data'];
+			var counter = 0;
+			for (var i = current_data.length - 1; i >= 0; i--) {
+				if (current_data[i][key] == 'wpositive')
+					counter++;
+			}
+			console.log('wpositive', counter)
 
-		function getPercentage(data, key) {
-			key = key || 'sentiment';						
-			var neutral = getNeutralPercentage(data, key);
-			var positive = getPositivePercentage(data, key);
-			var negative = getNegativePercentage(data, key);
-
-			return [{
-				name: 'Tweets',
-				//colorByPoint: true,
-				data: [{
-					name: 'Positive',
-					y: positive,
-					color: "#2E7D32"					
-				}, {
-					name: 'Negative',
-					y: negative,
-					sliced: true,
-					selected: true,
-					color: "#B71C1C"					
-				}, {
-					name: 'Neutral',
-					y: neutral,
-					color: "#7a8288"
-				}]
-			}]
-			// body...
+			return counter / data.count;
 		}
+		
+		function getSpositivePercentage(data, key) {
+			key = key || 'sentiment';			
+			var current_data = data['data'];
+			var counter = 0;
+			for (var i = current_data.length - 1; i >= 0; i--) {
+				if (current_data[i][key] == 'spositive')
+					counter++;
+			}
+			console.log('spositive', counter)
+
+			return counter / data.count;
+		}
+		
+		function getWnegativePercentage(data, key) {
+			key = key || 'sentiment';			
+			var current_data = data['data'];
+			var counter = 0;
+			for (var i = current_data.length - 1; i >= 0; i--) {
+				if (current_data[i][key] == 'wnegative')
+					counter++;
+			}
+			console.log('wnegative', counter)
+
+			return counter / data.count;
+		}
+		
+		function getSnegativePercentage(data, key) {
+			key = key || 'sentiment';			
+			var current_data = data['data'];
+			var counter = 0;
+			for (var i = current_data.length - 1; i >= 0; i--) {
+				if (current_data[i][key] == 'snegative')
+					counter++;
+			}
+			console.log('snegative', counter)
+
+			return counter / data.count;
+		}
+
+	Highcharts.theme = {
+    colors: ['#2b908f', '#90ee7e', '#f45b5b', '#7798BF', '#aaeeee', '#ff0066',
+        '#eeaaee', '#55BF3B', '#DF5353', '#7798BF', '#aaeeee'],
+    chart: {
+        backgroundColor: {
+            linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
+            stops: [
+                [0, '#2a2a2b'],
+                [1, '#3e3e40']
+            ]
+        },
+        style: {
+            fontFamily: '\'Unica One\', sans-serif'
+        },
+        plotBorderColor: '#606063'
+    },
+    title: {
+        style: {
+            color: '#E0E0E3',
+            textTransform: 'uppercase',
+            fontSize: '20px'
+        }
+    },
+    subtitle: {
+        style: {
+            color: '#E0E0E3',
+            textTransform: 'uppercase'
+        }
+    },
+    xAxis: {
+        gridLineColor: '#707073',
+        labels: {
+            style: {
+                color: '#E0E0E3'
+            }
+        },
+        lineColor: '#707073',
+        minorGridLineColor: '#505053',
+        tickColor: '#707073',
+        title: {
+            style: {
+                color: '#A0A0A3'
+            }
+        }
+    },
+    yAxis: {
+        gridLineColor: '#707073',
+        labels: {
+            style: {
+                color: '#E0E0E3'
+            }
+        },
+        lineColor: '#707073',
+        minorGridLineColor: '#505053',
+        tickColor: '#707073',
+        tickWidth: 1,
+        title: {
+            style: {
+                color: '#A0A0A3'
+            }
+        }
+    },
+    tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        style: {
+            color: '#F0F0F0'
+        }
+    },
+    plotOptions: {
+        series: {
+            dataLabels: {
+                color: '#F0F0F3',
+                style: {
+                    fontSize: '13px'
+                }
+            },
+            marker: {
+                lineColor: '#333'
+            }
+        },
+        boxplot: {
+            fillColor: '#505053'
+        },
+        candlestick: {
+            lineColor: 'white'
+        },
+        errorbar: {
+            color: 'white'
+        }
+    },
+    legend: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        itemStyle: {
+            color: '#E0E0E3'
+        },
+        itemHoverStyle: {
+            color: '#FFF'
+        },
+        itemHiddenStyle: {
+            color: '#606063'
+        },
+        title: {
+            style: {
+                color: '#C0C0C0'
+            }
+        }
+    },
+    credits: {
+        style: {
+            color: '#666'
+        }
+    },
+    labels: {
+        style: {
+            color: '#707073'
+        }
+    },
+    drilldown: {
+        activeAxisLabelStyle: {
+            color: '#F0F0F3'
+        },
+        activeDataLabelStyle: {
+            color: '#F0F0F3'
+        }
+    },
+    navigation: {
+        buttonOptions: {
+            symbolStroke: '#DDDDDD',
+            theme: {
+                fill: '#505053'
+            }
+        }
+    },
+    // scroll charts
+    rangeSelector: {
+        buttonTheme: {
+            fill: '#505053',
+            stroke: '#000000',
+            style: {
+                color: '#CCC'
+            },
+            states: {
+                hover: {
+                    fill: '#707073',
+                    stroke: '#000000',
+                    style: {
+                        color: 'white'
+                    }
+                },
+                select: {
+                    fill: '#000003',
+                    stroke: '#000000',
+                    style: {
+                        color: 'white'
+                    }
+                }
+            }
+        },
+        inputBoxBorderColor: '#505053',
+        inputStyle: {
+            backgroundColor: '#333',
+            color: 'silver'
+        },
+        labelStyle: {
+            color: 'silver'
+        }
+    },
+    navigator: {
+        handles: {
+            backgroundColor: '#666',
+            borderColor: '#AAA'
+        },
+        outlineColor: '#CCC',
+        maskFill: 'rgba(255,255,255,0.1)',
+        series: {
+            color: '#7798BF',
+            lineColor: '#A6C7ED'
+        },
+        xAxis: {
+            gridLineColor: '#505053'
+        }
+    },
+    scrollbar: {
+        barBackgroundColor: '#808083',
+        barBorderColor: '#808083',
+        buttonArrowColor: '#CCC',
+        buttonBackgroundColor: '#606063',
+        buttonBorderColor: '#606063',
+        rifleColor: '#FFF',
+        trackBackgroundColor: '#404043',
+        trackBorderColor: '#404043'
+    }
+};	
+	
+
+	
+		
 	</script>
+	
+	
+
 </body>
 
 </html>
