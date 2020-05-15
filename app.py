@@ -3,13 +3,14 @@ from flask import Flask, request, render_template, jsonify
 from twitter import TwitterClient
 import json
 
+
 def strtobool(v):
     return v.lower() in ["yes", "true", "t", "1"]
 
 
 app = Flask(__name__)
 # Setup the client <query string, retweets_only bool, with_sentiment bool>
-api = TwitterClient('Corona')
+api = TwitterClient('Donald Trump')
 
 @app.route('/')
 def index():
@@ -28,8 +29,21 @@ def tweets():
     api.set_tweetcount(tweetcount)
 
     tweets = api.get_tweets()
+    tweetsForcatter = api.get_tweets1()
+    subject =[];
+    polar = [];
+    subject=   api.getSubject(tweetsForcatter)
+    polar=   api.getPolar(tweetsForcatter)
+    subject = subject.to_json()
+    polar = polar.to_json()
+    
+    jsnobjectSubject =json.loads(subject)
+    jsnobjectpolar =json.loads(polar)
+  
     print("{} tweets".format(len(tweets)))
-    return jsonify({'data': tweets, 'count': len(tweets)})
+    return jsonify({'data': tweets, 'count': len(tweets), 
+                    'subject' : jsnobjectSubject,
+                    'polar' : jsnobjectpolar})
 
 
 #port = int(os.environ.get('PORT', 5000))
