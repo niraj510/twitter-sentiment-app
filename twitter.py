@@ -10,7 +10,7 @@ import pandas as pd
 import collections
 from collections import Counter
 import string
-from pathlib import Path
+from os.path import abspath, exists
 
 recd_tweets = []
 
@@ -340,7 +340,7 @@ class TwitterClient(object):
     
        final_words = [word for word in tokenized_words if word not in stop_words]
        emotion_list = []
-       with open('C:/Users/Rocky/Desktop/Twitter/git/twitter-sentiment-app-master/emotions.txt', 'r') as file:
+       with open("emotions.txt","r") as file:
         	for line in file:
         		clear_line = line.replace('\n', '').replace(',', '').replace("'", '').strip()
         		word, emotion = clear_line.split(':')
