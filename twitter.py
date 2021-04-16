@@ -24,10 +24,10 @@ class TwitterClient(object):
     def __init__(self, query, retweets_only=False, with_sentiment=False, **kwargs):
         self.sia = SentimentIntensityAnalyzer()
         # keys and tokens from the Twitter Dev Console
-        consumer_key = "Kq4mCtnOSPiNwA9ArvYq03DE7"
-        consumer_secret = "aWBfVbrJWppmEy3mAbrjUHa6Y8AKU6qkCBZwA6ZpAO8BEFaoC2"
-        access_token = "529590041-eZXHHkluorWkdRZRWiVYW3GVBuvr3VXt84cZcDYA"
-        access_token_secret = "rqlG8jzmKTPU3bZoCwgRnOUoD5UYOx8KDjhoXySPrR3mI"
+        consumer_key = "WG6WMvY5QnoKgb52MG9MZFAmt"
+        consumer_secret = "2ZtKnXu1LjshjwNo6sgUV02vHQfr1wchosNRj68k0ARd1vrz7U"
+        access_token = "1361391944-W2UVxbnbAt16XHit7F3XBMKPG9wuvGQZio9jQyV"
+        access_token_secret = "SzuZ2XhHEW2YQJGrQfbVtNslZyYr5m49hm5l776GXoXb3"
         
         # Attempt authentication
         try:
@@ -37,7 +37,7 @@ class TwitterClient(object):
             self.retweets_only = retweets_only
             self.with_sentiment = with_sentiment
             self.api = tweepy.API(self.auth)
-            self.tweet_count_max = 100  # To prevent Rate Limiting
+            self.tweet_count_max = 10  # To prevent Rate Limiting
         except:
             print("Error: Authentication Failed")
 
